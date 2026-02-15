@@ -13,14 +13,68 @@ const (
 	F = game.CellFilled
 )
 
-func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
-	b := game.Board{4, 1, []game.Cell{F, E, E, W}}
-	h := game.Point{0, 0}
-	g := &game.Game{b, h}
+func newGameFromASCII(rows []string) *game.Game {
+	height := len(rows)
+	if height == 0 {
+		panic("invalid rows: height == 0")
+	}
 
-	wantB := game.Board{4, 1, []game.Cell{F, F, F, W}}
-	wantH := game.Point{2, 0}
-	wantG := &game.Game{wantB, wantH}
+	var head game.Point
+	width := len(rows[0])
+	cells := make([]game.Cell, 0, width*height)
+	for y, row := range rows {
+		if len(row) != width {
+			panic("rows must be rectangular")
+		}
+		for x, ch := range row {
+			switch ch {
+			case '.':
+				cells = append(cells, game.CellEmpty)
+			case 'o':
+				cells = append(cells, game.CellFilled)
+			case 'H':
+				cells = append(cells, game.CellFilled)
+				head = game.Point{X: x, Y: y}
+			case '#':
+				cells = append(cells, game.CellWall)
+			default:
+				panic("invalid cell")
+			}
+		}
+	}
+	if cells[head.X] == game.CellWall {
+		panic("invalid head")
+	}
+	return &game.Game{
+		Board: game.Board{
+			Width:  width,
+			Height: height,
+			Cells:  cells,
+		},
+		Head: head,
+	}
+}
+
+func TestNewGameFromASCII(t *testing.T) {
+	g := newGameFromASCII([]string{".oH#"})
+
+	want := &game.Game{
+		Board: game.Board{
+			Width:  4,
+			Height: 1,
+			Cells:  []game.Cell{E, F, F, W},
+		},
+		Head: game.Point{X: 2, Y: 0},
+	}
+
+	if !reflect.DeepEqual(g, want) {
+		t.Errorf("want %v, got %v", want, g)
+	}
+}
+
+func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
+	g := newGameFromASCII([]string{"H..#"})
+	want := newGameFromASCII([]string{"ooH#"})
 
 	moved := g.Move(game.DirectionRight)
 
@@ -28,7 +82,7 @@ func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
 		t.Fatal("expected move")
 	}
 
-	if !reflect.DeepEqual(g, wantG) {
-		t.Errorf("want %v, got %v", wantG, g)
+	if !reflect.DeepEqual(g, want) {
+		t.Errorf("want %v, got %v", want, g)
 	}
 }
