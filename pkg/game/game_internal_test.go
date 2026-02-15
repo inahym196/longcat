@@ -56,9 +56,17 @@ func newGameFromASCII(rows []string) *game.Game {
 }
 
 func TestNewGameFromASCII(t *testing.T) {
-	g := newGameFromASCII([]string{".oH#"})
+	g := newGameFromASCII([]string{
+		"#####",
+		"#.oH#",
+		"#####",
+	})
 
-	want, err := game.NewGame(&game.Board{4, 1, [][]game.Cell{{E, F, F, W}}}, game.Point{2, 0})
+	want, err := game.NewGame(&game.Board{5, 3, [][]game.Cell{
+		{W, W, W, W, W},
+		{W, E, F, F, W},
+		{W, W, W, W, W},
+	}}, game.Point{3, 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,8 +77,16 @@ func TestNewGameFromASCII(t *testing.T) {
 }
 
 func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
-	g := newGameFromASCII([]string{"H..#"})
-	want := newGameFromASCII([]string{"ooH#"})
+	g := newGameFromASCII([]string{
+		"#####",
+		"#H..#",
+		"#####",
+	})
+	want := newGameFromASCII([]string{
+		"#####",
+		"#ooH#",
+		"#####",
+	})
 
 	moved := g.Move(game.DirectionRight)
 
@@ -84,7 +100,11 @@ func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
 }
 
 func TestGame_Move_Right_BlockedByWall(t *testing.T) {
-	g := newGameFromASCII([]string{"H#"})
+	g := newGameFromASCII([]string{
+		"###",
+		"#H#",
+		"###",
+	})
 
 	moved := g.Move(game.DirectionRight)
 
@@ -94,7 +114,11 @@ func TestGame_Move_Right_BlockedByWall(t *testing.T) {
 }
 
 func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
-	g := newGameFromASCII([]string{"Ho"})
+	g := newGameFromASCII([]string{
+		"####",
+		"#Ho#",
+		"####",
+	})
 
 	moved := g.Move(game.DirectionRight)
 
