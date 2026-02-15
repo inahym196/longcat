@@ -95,3 +95,13 @@ func TestGame_Move_Right_BlockedByWall(t *testing.T) {
 		t.Errorf("expected no move")
 	}
 }
+
+func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
+	g := newGameFromASCII([]string{"Ho"})
+
+	moved := g.Move(game.DirectionRight)
+
+	if moved {
+		t.Errorf("expected no move")
+	}
+}
