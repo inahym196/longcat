@@ -45,7 +45,7 @@ func newGameFromASCII(rows []string) *game.Game {
 		cells = append(cells, cellsRow)
 	}
 	return &game.Game{
-		Board: game.Board{
+		Board: &game.Board{
 			Width:  width,
 			Height: height,
 			Cells:  cells,
@@ -58,7 +58,7 @@ func TestNewGameFromASCII(t *testing.T) {
 	g := newGameFromASCII([]string{".oH#"})
 
 	want := &game.Game{
-		Board: game.Board{
+		Board: &game.Board{
 			Width:  4,
 			Height: 1,
 			Cells:  [][]game.Cell{{E, F, F, W}},
