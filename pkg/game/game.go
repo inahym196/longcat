@@ -24,7 +24,7 @@ type Point struct {
 type Board struct {
 	Width  int
 	Height int
-	Cells  []Cell
+	Cells  [][]Cell
 }
 
 type Game struct {
@@ -33,7 +33,7 @@ type Game struct {
 }
 
 func (g *Game) Move(d Direction) bool {
-	g.Board.Cells = []Cell{CellFilled, CellFilled, CellFilled, CellWall}
+	g.Board.Cells = [][]Cell{{CellFilled, CellFilled, CellFilled, CellWall}}
 	g.Head = Point{2, 0}
 	return true
 }

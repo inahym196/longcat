@@ -21,29 +21,28 @@ func newGameFromASCII(rows []string) *game.Game {
 
 	var head game.Point
 	width := len(rows[0])
-	cells := make([]game.Cell, 0, width*height)
+	cells := make([][]game.Cell, 0, height)
 	for y, row := range rows {
 		if len(row) != width {
 			panic("rows must be rectangular")
 		}
+		cellsRow := make([]game.Cell, 0, width)
 		for x, ch := range row {
 			switch ch {
 			case '.':
-				cells = append(cells, game.CellEmpty)
+				cellsRow = append(cellsRow, game.CellEmpty)
 			case 'o':
-				cells = append(cells, game.CellFilled)
+				cellsRow = append(cellsRow, game.CellFilled)
 			case 'H':
-				cells = append(cells, game.CellFilled)
+				cellsRow = append(cellsRow, game.CellFilled)
 				head = game.Point{X: x, Y: y}
 			case '#':
-				cells = append(cells, game.CellWall)
+				cellsRow = append(cellsRow, game.CellWall)
 			default:
 				panic("invalid cell")
 			}
 		}
-	}
-	if cells[head.X] == game.CellWall {
-		panic("invalid head")
+		cells = append(cells, cellsRow)
 	}
 	return &game.Game{
 		Board: game.Board{
@@ -62,7 +61,7 @@ func TestNewGameFromASCII(t *testing.T) {
 		Board: game.Board{
 			Width:  4,
 			Height: 1,
-			Cells:  []game.Cell{E, F, F, W},
+			Cells:  [][]game.Cell{{E, F, F, W}},
 		},
 		Head: game.Point{X: 2, Y: 0},
 	}
