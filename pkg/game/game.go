@@ -1,5 +1,10 @@
 package game
 
+import (
+	"fmt"
+	"slices"
+)
+
 type Direction uint8
 
 const (
@@ -50,6 +55,31 @@ func (b *Board) Fill(p Point) {
 type Game struct {
 	Board *Board
 	Head  Point
+}
+
+var (
+	GameNoWallErr = fmt.Errorf("壁が必要")
+)
+
+func NewGame(b *Board, h Point) (*Game, error) {
+	if b == nil {
+		return nil, fmt.Errorf("board is nil")
+	}
+	if slices.IndexFunc(b.Cells[0], func(c Cell) bool { return c != CellWall }) != -1 {
+		return nil, GameNoWallErr
+	}
+	if slices.IndexFunc(b.Cells[len(b.Cells)-1], func(c Cell) bool { return c != CellWall }) != -1 {
+		return nil, GameNoWallErr
+	}
+	for _, row := range b.Cells {
+		if row[0] != CellWall {
+			return nil, GameNoWallErr
+		}
+		if row[len(row)-1] != CellWall {
+			return nil, GameNoWallErr
+		}
+	}
+	return &Game{b, h}, nil
 }
 
 func (g *Game) Move(d Direction) bool {

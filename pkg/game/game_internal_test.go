@@ -44,26 +44,23 @@ func newGameFromASCII(rows []string) *game.Game {
 		}
 		cells = append(cells, cellsRow)
 	}
-	return &game.Game{
-		Board: &game.Board{
-			Width:  width,
-			Height: height,
-			Cells:  cells,
-		},
-		Head: head,
+	g, err := game.NewGame(&game.Board{
+		Width:  width,
+		Height: height,
+		Cells:  cells,
+	}, head)
+	if err != nil {
+		panic(err)
 	}
+	return g
 }
 
 func TestNewGameFromASCII(t *testing.T) {
 	g := newGameFromASCII([]string{".oH#"})
 
-	want := &game.Game{
-		Board: &game.Board{
-			Width:  4,
-			Height: 1,
-			Cells:  [][]game.Cell{{E, F, F, W}},
-		},
-		Head: game.Point{X: 2, Y: 0},
+	want, err := game.NewGame(&game.Board{4, 1, [][]game.Cell{{E, F, F, W}}}, game.Point{2, 0})
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	if !reflect.DeepEqual(g, want) {
