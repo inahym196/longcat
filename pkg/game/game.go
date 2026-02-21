@@ -80,7 +80,7 @@ func (b *Board) Fill(p Point) {
 }
 
 type Game struct {
-	Board *Board
+	board *Board
 	head  Point
 }
 
@@ -118,16 +118,16 @@ func (g *Game) Move(d Direction) bool {
 
 	for {
 		next := current.Move(d)
-		if !g.Board.InBounds(next) {
+		if !g.board.InBounds(next) {
 			panic("something wrong")
 		}
-		if g.Board.IsWall(next) {
+		if g.board.IsWall(next) {
 			break
 		}
-		if g.Board.IsFilled(next) {
+		if g.board.IsFilled(next) {
 			break
 		}
-		g.Board.Fill(next)
+		g.board.Fill(next)
 		current = next
 		moved = true
 	}
