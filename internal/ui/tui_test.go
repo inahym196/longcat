@@ -25,7 +25,7 @@ func TestRender(t *testing.T) {
 	}
 
 	got := Render(ss)
-	want := "[# # # # #\n# o . H #\n# # # # #]"
+	want := "# # # # #\n# o . H #\n# # # # #"
 	if got != want {
 		t.Fatalf("want %q, got %q", want, got)
 	}

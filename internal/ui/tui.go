@@ -78,7 +78,6 @@ func cellToString(cell game.Cell) string {
 
 func Render(ss Snapshot) string {
 	var b strings.Builder
-	b.WriteByte('[')
 	for y, row := range ss.Cells {
 		if y > 0 {
 			b.WriteByte('\n')
@@ -97,6 +96,5 @@ func Render(ss Snapshot) string {
 			b.WriteString(cellToString(cell))
 		}
 	}
-	b.WriteByte(']')
 	return b.String()
 }
