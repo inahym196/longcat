@@ -151,3 +151,19 @@ func TestGame_Move_Directions(t *testing.T) {
 		})
 	}
 }
+
+func TestGame_IsCleared_True_NoEmptyCells(t *testing.T) {
+	g := newGameFromASCII([]string{"###", "#H#", "###"})
+
+	if !g.IsCleared() {
+		t.Errorf("want cleared")
+	}
+}
+
+func TestGame_IsNotCleared_False_EmptyCellsExists(t *testing.T) {
+	g := newGameFromASCII([]string{"####", "#H.#", "####"})
+
+	if g.IsCleared() {
+		t.Errorf("want not cleared")
+	}
+}

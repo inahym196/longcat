@@ -79,9 +79,22 @@ func (b *Board) Fill(p Point) {
 	b.Cells[p.Y][p.X] = CellFilled
 }
 
+func (b *Board) EmptyCount() int {
+	count := 0
+	for _, rows := range b.Cells {
+		for _, c := range rows {
+			if c == CellEmpty {
+				count++
+			}
+		}
+	}
+	return count
+}
+
 type Game struct {
-	board *Board
-	head  Point
+	board      *Board
+	head       Point
+	emptyCount int
 }
 
 var (
@@ -106,7 +119,7 @@ func NewGame(b *Board, h Point) (*Game, error) {
 			return nil, GameNoWallErr
 		}
 	}
-	return &Game{b, h}, nil
+	return &Game{b, h, b.EmptyCount()}, nil
 }
 
 func (g *Game) Head() Point { return g.head }
@@ -134,6 +147,13 @@ func (g *Game) Move(d Direction) bool {
 
 	if moved {
 		g.head = current
+		g.emptyCount = g.board.EmptyCount()
 	}
 	return moved
 }
+
+func (g *Game) IsCleared() bool {
+	return g.emptyCount == 0
+}
+
+// TODO: Game.EmptyCountは必要になったら公開する
