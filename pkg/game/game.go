@@ -26,6 +26,33 @@ type Point struct {
 	X, Y int
 }
 
+func (p Point) Move(d Direction) Point {
+	switch d {
+	case DirectionUp:
+		return p.MoveUp()
+	case DirectionDown:
+		return p.MoveDown()
+	case DirectionLeft:
+		return p.MoveLeft()
+	case DirectionRight:
+		return p.MoveRight()
+	default:
+		panic("invalid direction")
+	}
+}
+
+func (p Point) MoveUp() Point {
+	return Point{p.X, p.Y - 1}
+}
+
+func (p Point) MoveDown() Point {
+	return Point{p.X, p.Y + 1}
+}
+
+func (p Point) MoveLeft() Point {
+	return Point{p.X - 1, p.Y}
+}
+
 func (p Point) MoveRight() Point {
 	return Point{p.X + 1, p.Y}
 }
@@ -83,17 +110,14 @@ func NewGame(b *Board, h Point) (*Game, error) {
 }
 
 func (g *Game) Move(d Direction) bool {
-	if d != DirectionRight {
-		panic("not implemented yet")
-	}
 
 	current := g.Head
 	moved := false
 
 	for {
-		next := current.MoveRight()
+		next := current.Move(d)
 		if !g.Board.InBounds(next) {
-			break
+			panic("something wrong")
 		}
 		if g.Board.IsWall(next) {
 			break
