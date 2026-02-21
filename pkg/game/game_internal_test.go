@@ -13,7 +13,7 @@ const (
 	F = game.CellFilled
 )
 
-func newGameFromASCII(rows []string) *game.Game {
+func newGameFromText(rows []string) *game.Game {
 	height := len(rows)
 	if height == 0 {
 		panic("invalid rows: height == 0")
@@ -55,8 +55,8 @@ func newGameFromASCII(rows []string) *game.Game {
 	return g
 }
 
-func TestNewGameFromASCII(t *testing.T) {
-	g := newGameFromASCII([]string{
+func TestNewGameFromText(t *testing.T) {
+	g := newGameFromText([]string{
 		"#####",
 		"#.oH#",
 		"#####",
@@ -77,12 +77,12 @@ func TestNewGameFromASCII(t *testing.T) {
 }
 
 func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
-	g := newGameFromASCII([]string{
+	g := newGameFromText([]string{
 		"#####",
 		"#H..#",
 		"#####",
 	})
-	want := newGameFromASCII([]string{
+	want := newGameFromText([]string{
 		"#####",
 		"#ooH#",
 		"#####",
@@ -100,7 +100,7 @@ func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
 }
 
 func TestGame_Move_Right_BlockedByWall(t *testing.T) {
-	g := newGameFromASCII([]string{
+	g := newGameFromText([]string{
 		"###",
 		"#H#",
 		"###",
@@ -114,7 +114,7 @@ func TestGame_Move_Right_BlockedByWall(t *testing.T) {
 }
 
 func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
-	g := newGameFromASCII([]string{
+	g := newGameFromText([]string{
 		"####",
 		"#Ho#",
 		"####",
@@ -134,10 +134,10 @@ func TestGame_Move_Directions(t *testing.T) {
 		dir  game.Direction
 		want game.Point
 	}{
-		{"up", newGameFromASCII([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
-		{"down", newGameFromASCII([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{1, 2}},
-		{"left", newGameFromASCII([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
-		{"right", newGameFromASCII([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{2, 1}},
+		{"up", newGameFromText([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
+		{"down", newGameFromText([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{1, 2}},
+		{"left", newGameFromText([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
+		{"right", newGameFromText([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{2, 1}},
 	}
 
 	for _, tt := range tests {
@@ -153,7 +153,7 @@ func TestGame_Move_Directions(t *testing.T) {
 }
 
 func TestGame_IsCleared_True_NoEmptyCells(t *testing.T) {
-	g := newGameFromASCII([]string{"###", "#H#", "###"})
+	g := newGameFromText([]string{"###", "#H#", "###"})
 
 	if !g.IsCleared() {
 		t.Errorf("want cleared")
@@ -161,7 +161,7 @@ func TestGame_IsCleared_True_NoEmptyCells(t *testing.T) {
 }
 
 func TestGame_IsNotCleared_False_EmptyCellsExists(t *testing.T) {
-	g := newGameFromASCII([]string{"####", "#H.#", "####"})
+	g := newGameFromText([]string{"####", "#H.#", "####"})
 
 	if g.IsCleared() {
 		t.Errorf("want not cleared")
