@@ -29,31 +29,31 @@ type Point struct {
 func (p Point) Move(d Direction) Point {
 	switch d {
 	case DirectionUp:
-		return p.MoveUp()
+		return p.moveUp()
 	case DirectionDown:
-		return p.MoveDown()
+		return p.moveDown()
 	case DirectionLeft:
-		return p.MoveLeft()
+		return p.moveLeft()
 	case DirectionRight:
-		return p.MoveRight()
+		return p.moveRight()
 	default:
 		panic("invalid direction")
 	}
 }
 
-func (p Point) MoveUp() Point {
+func (p Point) moveUp() Point {
 	return Point{p.X, p.Y - 1}
 }
 
-func (p Point) MoveDown() Point {
+func (p Point) moveDown() Point {
 	return Point{p.X, p.Y + 1}
 }
 
-func (p Point) MoveLeft() Point {
+func (p Point) moveLeft() Point {
 	return Point{p.X - 1, p.Y}
 }
 
-func (p Point) MoveRight() Point {
+func (p Point) moveRight() Point {
 	return Point{p.X + 1, p.Y}
 }
 
