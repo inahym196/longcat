@@ -126,3 +126,26 @@ func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
 		t.Errorf("expected no move")
 	}
 }
+
+func TestGame_Move_Directions(t *testing.T) {
+	tests := []struct {
+		g    *game.Game
+		dir  game.Direction
+		want game.Point
+	}{
+		{newGameFromASCII([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
+		{newGameFromASCII([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{2, 1}},
+		{newGameFromASCII([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
+		{newGameFromASCII([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{1, 2}},
+	}
+
+	for _, tt := range tests {
+
+		tt.g.Move(tt.dir)
+		got := tt.g.Head
+
+		if got != tt.want {
+			t.Errorf("want %v, got %v", tt.want, got)
+		}
+	}
+}
