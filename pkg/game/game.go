@@ -81,7 +81,7 @@ func (b *Board) Fill(p Point) {
 
 type Game struct {
 	Board *Board
-	Head  Point
+	head  Point
 }
 
 var (
@@ -109,9 +109,11 @@ func NewGame(b *Board, h Point) (*Game, error) {
 	return &Game{b, h}, nil
 }
 
+func (g *Game) Head() Point { return g.head }
+
 func (g *Game) Move(d Direction) bool {
 
-	current := g.Head
+	current := g.head
 	moved := false
 
 	for {
@@ -131,7 +133,7 @@ func (g *Game) Move(d Direction) bool {
 	}
 
 	if moved {
-		g.Head = current
+		g.head = current
 	}
 	return moved
 }
