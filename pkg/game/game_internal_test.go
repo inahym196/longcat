@@ -129,23 +129,25 @@ func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
 
 func TestGame_Move_Directions(t *testing.T) {
 	tests := []struct {
+		name string
 		g    *game.Game
 		dir  game.Direction
 		want game.Point
 	}{
-		{newGameFromASCII([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
-		{newGameFromASCII([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{2, 1}},
-		{newGameFromASCII([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
-		{newGameFromASCII([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{1, 2}},
+		{"up", newGameFromASCII([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
+		{"down", newGameFromASCII([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{1, 2}},
+		{"left", newGameFromASCII([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
+		{"right", newGameFromASCII([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{2, 1}},
 	}
 
 	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.g.Move(tt.dir)
+			got := tt.g.Head
 
-		tt.g.Move(tt.dir)
-		got := tt.g.Head
-
-		if got != tt.want {
-			t.Errorf("want %v, got %v", tt.want, got)
-		}
+			if got != tt.want {
+				t.Errorf("want %v, got %v", tt.want, got)
+			}
+		})
 	}
 }
