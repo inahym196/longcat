@@ -35,13 +35,6 @@ type Point struct {
 	X, Y int
 }
 
-type Snapshot struct {
-	Width  int
-	Height int
-	Cells  [][]game.Cell
-	Head   Point
-}
-
 func ParseKey(r rune) Command {
 	switch r {
 	case 'q':
@@ -76,9 +69,9 @@ func cellToString(cell game.Cell) string {
 	}
 }
 
-func Render(ss Snapshot) string {
+func Render(g *game.Game) string {
 	var b strings.Builder
-	for y, row := range ss.Cells {
+	for y, row := range g.Board().Cells {
 		if y > 0 {
 			b.WriteByte('\n')
 		}
@@ -86,7 +79,8 @@ func Render(ss Snapshot) string {
 			if x > 0 {
 				b.WriteByte(' ')
 			}
-			if ss.Head.X == x && ss.Head.Y == y {
+			p := game.Point{X: x, Y: y}
+			if g.Head() == p {
 				if cell != game.CellFilled {
 					panic(fmt.Sprintf("invalid head cell at (%d,%d)", x, y))
 				}
