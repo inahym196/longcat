@@ -28,7 +28,7 @@ func TestNewGameFromText(t *testing.T) {
 		"#####",
 	})
 
-	wantB := &game.Board{5, 3, [][]game.Cell{
+	wantB := game.Board{5, 3, [][]game.Cell{
 		{W, W, W, W, W},
 		{W, E, F, F, W},
 		{W, W, W, W, W},
