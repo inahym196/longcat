@@ -26,7 +26,34 @@ type Point struct {
 	X, Y int
 }
 
-func (p Point) MoveRight() Point {
+func (p Point) Move(d Direction) Point {
+	switch d {
+	case DirectionUp:
+		return p.moveUp()
+	case DirectionDown:
+		return p.moveDown()
+	case DirectionLeft:
+		return p.moveLeft()
+	case DirectionRight:
+		return p.moveRight()
+	default:
+		panic("invalid direction")
+	}
+}
+
+func (p Point) moveUp() Point {
+	return Point{p.X, p.Y - 1}
+}
+
+func (p Point) moveDown() Point {
+	return Point{p.X, p.Y + 1}
+}
+
+func (p Point) moveLeft() Point {
+	return Point{p.X - 1, p.Y}
+}
+
+func (p Point) moveRight() Point {
 	return Point{p.X + 1, p.Y}
 }
 
@@ -52,14 +79,79 @@ func (b *Board) Fill(p Point) {
 	b.Cells[p.Y][p.X] = CellFilled
 }
 
+func (b *Board) EmptyCount() int {
+	count := 0
+	for _, rows := range b.Cells {
+		for _, c := range rows {
+			if c == CellEmpty {
+				count++
+			}
+		}
+	}
+	return count
+}
+
 type Game struct {
-	Board *Board
-	Head  Point
+	board      *Board
+	head       Point
+	emptyCount int
 }
 
 var (
 	GameNoWallErr = fmt.Errorf("壁が必要")
 )
+
+func NewGameFromText(rows []string) (*Game, error) {
+	if len(rows) == 0 {
+		return nil, fmt.Errorf("rows is empty")
+	}
+
+	width := len(rows[0])
+	if width == 0 {
+		return nil, fmt.Errorf("rows[0] is empty")
+	}
+
+	cells := make([][]Cell, 0, len(rows))
+	head := Point{}
+	headFound := false
+
+	for y, row := range rows {
+		if len(row) != width {
+			return nil, fmt.Errorf("rows must be rectangular")
+		}
+
+		cellRow := make([]Cell, 0, width)
+		for x, ch := range row {
+			switch ch {
+			case '.':
+				cellRow = append(cellRow, CellEmpty)
+			case 'o':
+				cellRow = append(cellRow, CellFilled)
+			case 'H':
+				if headFound {
+					return nil, fmt.Errorf("head must be single")
+				}
+				cellRow = append(cellRow, CellFilled)
+				head = Point{X: x, Y: y}
+				headFound = true
+			case '#':
+				cellRow = append(cellRow, CellWall)
+			default:
+				return nil, fmt.Errorf("invalid cell: %q", ch)
+			}
+		}
+		cells = append(cells, cellRow)
+	}
+	if !headFound {
+		return nil, fmt.Errorf("head not found")
+	}
+
+	return NewGame(&Board{
+		Width:  width,
+		Height: len(rows),
+		Cells:  cells,
+	}, head)
+}
 
 func NewGame(b *Board, h Point) (*Game, error) {
 	if b == nil {
@@ -79,35 +171,53 @@ func NewGame(b *Board, h Point) (*Game, error) {
 			return nil, GameNoWallErr
 		}
 	}
-	return &Game{b, h}, nil
+	return &Game{b, h, b.EmptyCount()}, nil
+}
+
+func (g *Game) Head() Point { return g.head }
+
+func (g *Game) Board() Board {
+	cells := make([][]Cell, len(g.board.Cells))
+	for y, row := range g.board.Cells {
+		cells[y] = append([]Cell(nil), row...)
+	}
+	return Board{
+		Width:  g.board.Width,
+		Height: g.board.Height,
+		Cells:  cells,
+	}
 }
 
 func (g *Game) Move(d Direction) bool {
-	if d != DirectionRight {
-		panic("not implemented yet")
-	}
 
-	current := g.Head
+	current := g.head
 	moved := false
 
 	for {
-		next := current.MoveRight()
-		if !g.Board.InBounds(next) {
+		next := current.Move(d)
+		if !g.board.InBounds(next) {
+			panic("something wrong")
+		}
+		if g.board.IsWall(next) {
 			break
 		}
-		if g.Board.IsWall(next) {
+		if g.board.IsFilled(next) {
 			break
 		}
-		if g.Board.IsFilled(next) {
-			break
-		}
-		g.Board.Fill(next)
+		g.board.Fill(next)
 		current = next
 		moved = true
 	}
 
 	if moved {
-		g.Head = current
+		g.head = current
+		g.emptyCount = g.board.EmptyCount()
 	}
 	return moved
 }
+
+func (g *Game) IsCleared() bool {
+	return g.emptyCount == 0
+}
+
+// TODO: Game.EmptyCountは必要になったら公開する
