@@ -9,68 +9,6 @@ import (
 	"github.com/inahym196/longcat/pkg/game"
 )
 
-// TODO: uiが増えたタイミングでCommandをusecaseに移す
-type Command uint8
-
-const (
-	CmdNoop Command = iota
-	CmdQuit
-	CmdMoveUp
-	CmdMoveDown
-	CmdMoveLeft
-	CmdMoveRight
-	CmdUndo
-	CmdReset
-)
-
-type Input struct {
-	Cmd Command
-}
-
-type MoveResult struct {
-	Moved   bool
-	Cleared bool
-	Ended   bool
-}
-
-type Point struct {
-	X, Y int
-}
-
-func ParseKey(r rune) Command {
-	switch r {
-	case 'q':
-		return CmdQuit
-	case 'k':
-		return CmdMoveUp
-	case 'j':
-		return CmdMoveDown
-	case 'h':
-		return CmdMoveLeft
-	case 'l':
-		return CmdMoveRight
-	case 'u':
-		return CmdUndo
-	case 'r':
-		return CmdReset
-	default:
-		return CmdNoop
-	}
-}
-
-func cellToString(cell game.Cell) string {
-	switch cell {
-	case game.CellEmpty:
-		return "."
-	case game.CellFilled:
-		return "o"
-	case game.CellWall:
-		return "#"
-	default:
-		panic("invalid cell")
-	}
-}
-
 func Render(g *game.Game) string {
 	var b strings.Builder
 	for y, row := range g.Board().Cells {
@@ -89,7 +27,16 @@ func Render(g *game.Game) string {
 				b.WriteString("H")
 				continue
 			}
-			b.WriteString(cellToString(cell))
+			switch cell {
+			case game.CellEmpty:
+				b.WriteString(".")
+			case game.CellFilled:
+				b.WriteString("o")
+			case game.CellWall:
+				b.WriteString("#")
+			default:
+				panic("invalid cell")
+			}
 		}
 	}
 	return b.String()
@@ -113,17 +60,21 @@ func (c *Controller) Run() error {
 			return err
 		}
 
-		switch ParseKey(ch) {
-		case CmdQuit:
+		switch ch {
+		case 'q':
 			return nil
-		case CmdMoveUp:
+		case 'k':
 			c.game.Move(game.DirectionUp)
-		case CmdMoveDown:
+		case 'j':
 			c.game.Move(game.DirectionDown)
-		case CmdMoveLeft:
+		case 'h':
 			c.game.Move(game.DirectionLeft)
-		case CmdMoveRight:
+		case 'l':
 			c.game.Move(game.DirectionRight)
+		case 'u':
+			// not implemented yet
+		case 'r':
+			// not implemented yet
 		default:
 			// noop
 		}
