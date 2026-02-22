@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/inahym196/longcat/pkg/game"
@@ -91,4 +93,44 @@ func Render(g *game.Game) string {
 		}
 	}
 	return b.String()
+}
+
+type Controller struct {
+	in   *bufio.Reader
+	out  io.Writer
+	game *game.Game
+}
+
+func NewController(r io.Reader, w io.Writer, g *game.Game) *Controller {
+	return &Controller{bufio.NewReader(r), w, g}
+}
+
+func (c *Controller) Run() error {
+	for {
+		fmt.Fprintln(c.out, Render(c.game))
+		ch, _, err := c.in.ReadRune()
+		if err != nil {
+			return err
+		}
+
+		switch ParseKey(ch) {
+		case CmdQuit:
+			return nil
+		case CmdMoveUp:
+			c.game.Move(game.DirectionUp)
+		case CmdMoveDown:
+			c.game.Move(game.DirectionDown)
+		case CmdMoveLeft:
+			c.game.Move(game.DirectionLeft)
+		case CmdMoveRight:
+			c.game.Move(game.DirectionRight)
+		default:
+			// noop
+		}
+		if c.game.IsCleared() {
+			fmt.Fprintln(c.out, Render(c.game))
+			fmt.Fprintf(c.out, "CLEARED")
+			return nil
+		}
+	}
 }
