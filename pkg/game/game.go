@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"slices"
 )
 
 type Game struct {
@@ -10,10 +9,6 @@ type Game struct {
 	head       Point
 	emptyCount int
 }
-
-var (
-	GameNoWallErr = fmt.Errorf("壁が必要")
-)
 
 func NewGameFromText(rows []string) (*Game, error) {
 	if len(rows) == 0 {
@@ -59,31 +54,16 @@ func NewGameFromText(rows []string) (*Game, error) {
 	if !headFound {
 		return nil, fmt.Errorf("head not found")
 	}
-
-	return NewGame(&Board{
-		Width:  width,
-		Height: len(rows),
-		Cells:  cells,
-	}, head)
+	b, err := NewBoard(width, len(rows), cells)
+	if err != nil {
+		panic(err)
+	}
+	return NewGame(b, head)
 }
 
 func NewGame(b *Board, h Point) (*Game, error) {
 	if b == nil {
 		return nil, fmt.Errorf("board is nil")
-	}
-	if slices.IndexFunc(b.Cells[0], func(c Cell) bool { return c != CellWall }) != -1 {
-		return nil, GameNoWallErr
-	}
-	if slices.IndexFunc(b.Cells[len(b.Cells)-1], func(c Cell) bool { return c != CellWall }) != -1 {
-		return nil, GameNoWallErr
-	}
-	for _, row := range b.Cells {
-		if row[0] != CellWall {
-			return nil, GameNoWallErr
-		}
-		if row[len(row)-1] != CellWall {
-			return nil, GameNoWallErr
-		}
 	}
 	return &Game{b, h, b.EmptyCount()}, nil
 }
@@ -109,13 +89,11 @@ func (g *Game) Move(d Direction) bool {
 
 	for {
 		next := current.Move(d)
-		if !g.board.InBounds(next) {
-			panic("something wrong")
+		nextCell, err := g.board.Cell(next)
+		if err != nil {
+			panic(err)
 		}
-		if g.board.IsWall(next) {
-			break
-		}
-		if g.board.IsFilled(next) {
+		if nextCell != CellEmpty {
 			break
 		}
 		g.board.Fill(next)

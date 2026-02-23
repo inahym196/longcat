@@ -1,5 +1,10 @@
 package game
 
+import (
+	"fmt"
+	"slices"
+)
+
 type Cell uint8
 
 const (
@@ -8,22 +13,64 @@ const (
 	CellFilled
 )
 
+var (
+	BoardInvalidHeightErr = fmt.Errorf("height is invalid")
+	BoardInvalidWidthErr  = fmt.Errorf("width is invalid")
+	BoardNoTopWallErr     = fmt.Errorf("no top wall")
+	BoardNoBottomWallErr  = fmt.Errorf("no bottom wall")
+	BoardNoSideWallErr    = fmt.Errorf("no side wall")
+	BoardOutOfRangeErr    = fmt.Errorf("out of range")
+)
+
 type Board struct {
 	Width  int
 	Height int
 	Cells  [][]Cell
 }
 
-func (b *Board) InBounds(p Point) bool {
+func NewBoard(width, height int, cells [][]Cell) (*Board, error) {
+	if len(cells) != height {
+		return nil, BoardInvalidHeightErr
+	}
+	for _, row := range cells {
+		if len(row) != width {
+			return nil, BoardInvalidWidthErr
+		}
+	}
+	b := Board{width, height, cells}
+
+	if err := b.validateBoard(); err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
+func (b *Board) validateBoard() error {
+	if slices.IndexFunc(b.Cells[0], func(c Cell) bool { return c != CellWall }) != -1 {
+		return BoardNoTopWallErr
+	}
+	if slices.IndexFunc(b.Cells[b.Height-1], func(c Cell) bool { return c != CellWall }) != -1 {
+		return BoardNoBottomWallErr
+	}
+	for _, row := range b.Cells {
+		if row[0] != CellWall {
+			return BoardNoSideWallErr
+		}
+		if row[len(row)-1] != CellWall {
+			return BoardNoSideWallErr
+		}
+	}
+	return nil
+}
+func (b *Board) Cell(p Point) (Cell, error) {
+	if !b.inBounds(p) {
+		return CellEmpty, BoardOutOfRangeErr
+	}
+	return b.Cells[p.Y][p.X], nil
+}
+
+func (b *Board) inBounds(p Point) bool {
 	return 0 <= p.Y && p.Y < len(b.Cells) && 0 <= p.X && p.X < len(b.Cells[0])
-}
-
-func (b *Board) IsWall(p Point) bool {
-	return b.Cells[p.Y][p.X] == CellWall
-}
-
-func (b *Board) IsFilled(p Point) bool {
-	return b.Cells[p.Y][p.X] == CellFilled
 }
 
 func (b *Board) Fill(p Point) {
