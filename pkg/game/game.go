@@ -12,14 +12,14 @@ var (
 	GameHeadErr = fmt.Errorf("invalid head")
 )
 
-func NewGame(cells [][]Cell, h Point) (*Game, error) {
+func NewGame(cells [][]Cell, head Point) (*Game, error) {
 
 	b, err := NewBoard(cells)
 	if err != nil {
 		return nil, err
 	}
 
-	headCell, err := b.Cell(h)
+	headCell, err := b.Cell(head)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func NewGame(cells [][]Cell, h Point) (*Game, error) {
 		return nil, GameHeadErr
 	}
 
-	return &Game{b, h, b.EmptyCount()}, nil
+	return &Game{b, head, b.EmptyCount()}, nil
 }
 
 func (g *Game) Head() Point { return g.head }
