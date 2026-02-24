@@ -28,16 +28,14 @@ type Board struct {
 	Cells  [][]Cell
 }
 
-func NewBoard(width, height int, cells [][]Cell) (*Board, error) {
-	if len(cells) != height {
+func NewBoard(cells [][]Cell) (*Board, error) {
+	if len(cells) < 3 {
 		return nil, BoardInvalidHeightErr
 	}
-	for _, row := range cells {
-		if len(row) != width {
-			return nil, BoardInvalidWidthErr
-		}
+	if len(cells[0]) < 3 {
+		return nil, BoardInvalidWidthErr
 	}
-	b := Board{width, height, cells}
+	b := Board{len(cells[0]), len(cells), cells}
 
 	if err := b.validateBoard(); err != nil {
 		return nil, err
@@ -87,4 +85,8 @@ func (b *Board) EmptyCount() int {
 		}
 	}
 	return count
+}
+
+func (b *Board) Snapshot() [][]Cell {
+	return slices.Clone(b.Cells)
 }

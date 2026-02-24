@@ -13,65 +13,60 @@ const (
 	F = game.CellFilled
 )
 
-func mustNewGameFromText(rows []string) *game.Game {
-	g, err := game.NewGameFromText(rows)
+func mustNewCellsAndHeadFromText(t *testing.T, rows []string) ([][]game.Cell, game.Point) {
+	cells := make([][]game.Cell, 0, len(rows))
+
+	head := game.Point{}
+	for y, row := range rows {
+		cellRow := make([]game.Cell, 0, len(row))
+		for x, ch := range row {
+			switch ch {
+			case '.':
+				cellRow = append(cellRow, game.CellEmpty)
+			case 'o':
+				cellRow = append(cellRow, game.CellFilled)
+			case 'H':
+				cellRow = append(cellRow, game.CellFilled)
+				head = game.Point{x, y}
+			case '#':
+				cellRow = append(cellRow, game.CellWall)
+			default:
+				t.Fatalf("invalid cell: %q", ch)
+			}
+		}
+		cells = append(cells, cellRow)
+	}
+	return cells, head
+}
+
+func mustNewGameFromText(t *testing.T, rows []string) *game.Game {
+	cells, head := mustNewCellsAndHeadFromText(t, rows)
+	g, err := game.NewGame(cells, head)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	return g
 }
 
-func TestNewGameFromText(t *testing.T) {
-	g, _ := game.NewGameFromText([]string{
-		"#####",
-		"#.oH#",
-		"#####",
-	})
-
-	wantB := game.Board{5, 3, [][]game.Cell{
-		{W, W, W, W, W},
-		{W, E, F, F, W},
-		{W, W, W, W, W},
-	}}
-	wantP := game.Point{3, 1}
-
-	if !reflect.DeepEqual(g.Board(), wantB) {
-		t.Errorf("want %v, got %v", wantB, g.Board())
-	}
-	if g.Head() != wantP {
-		t.Errorf("want %v, got %v", wantP, g.Head())
-	}
-}
-
 func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
-	g := mustNewGameFromText([]string{
-		"#####",
-		"#H..#",
-		"#####",
-	})
-	want := mustNewGameFromText([]string{
-		"#####",
-		"#ooH#",
-		"#####",
-	})
+	g := mustNewGameFromText(t, []string{"#####", "#H..#", "#####"})
+	want := mustNewGameFromText(t, []string{"#####", "#ooH#", "#####"})
 
 	moved := g.Move(game.DirectionRight)
-
 	if !moved {
 		t.Fatal("expected move")
 	}
 
-	if !reflect.DeepEqual(g, want) {
-		t.Errorf("want %v, got %v", want, g)
+	if got := g.Board(); !reflect.DeepEqual(got.Snapshot(), want.Board().Snapshot()) {
+		t.Errorf("want %v, got %v", want.Board().Snapshot(), got.Snapshot())
+	}
+	if got := g.Head(); got != want.Head() {
+		t.Errorf("want %v, got %v", want.Head(), got)
 	}
 }
 
 func TestGame_Move_Right_BlockedByWall(t *testing.T) {
-	g := mustNewGameFromText([]string{
-		"###",
-		"#H#",
-		"###",
-	})
+	g := mustNewGameFromText(t, []string{"###", "#H#", "###"})
 
 	moved := g.Move(game.DirectionRight)
 
@@ -81,7 +76,7 @@ func TestGame_Move_Right_BlockedByWall(t *testing.T) {
 }
 
 func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
-	g := mustNewGameFromText([]string{
+	g := mustNewGameFromText(t, []string{
 		"####",
 		"#Ho#",
 		"####",
@@ -101,10 +96,10 @@ func TestGame_Move_Directions(t *testing.T) {
 		dir  game.Direction
 		want game.Point
 	}{
-		{"up", mustNewGameFromText([]string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
-		{"down", mustNewGameFromText([]string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{1, 2}},
-		{"left", mustNewGameFromText([]string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
-		{"right", mustNewGameFromText([]string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{2, 1}},
+		{"up", mustNewGameFromText(t, []string{"###", "#.#", "#H#", "###"}), game.DirectionUp, game.Point{1, 1}},
+		{"down", mustNewGameFromText(t, []string{"###", "#H#", "#.#", "###"}), game.DirectionDown, game.Point{1, 2}},
+		{"left", mustNewGameFromText(t, []string{"####", "#.H#", "####"}), game.DirectionLeft, game.Point{1, 1}},
+		{"right", mustNewGameFromText(t, []string{"####", "#H.#", "####"}), game.DirectionRight, game.Point{2, 1}},
 	}
 
 	for _, tt := range tests {
@@ -120,7 +115,7 @@ func TestGame_Move_Directions(t *testing.T) {
 }
 
 func TestGame_IsCleared_True_NoEmptyCells(t *testing.T) {
-	g := mustNewGameFromText([]string{"###", "#H#", "###"})
+	g := mustNewGameFromText(t, []string{"###", "#H#", "###"})
 
 	if !g.IsCleared() {
 		t.Errorf("want cleared")
@@ -128,7 +123,7 @@ func TestGame_IsCleared_True_NoEmptyCells(t *testing.T) {
 }
 
 func TestGame_IsNotCleared_False_EmptyCellsExists(t *testing.T) {
-	g := mustNewGameFromText([]string{"####", "#H.#", "####"})
+	g := mustNewGameFromText(t, []string{"####", "#H.#", "####"})
 
 	if g.IsCleared() {
 		t.Errorf("want not cleared")

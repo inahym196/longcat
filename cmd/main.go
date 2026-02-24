@@ -18,7 +18,13 @@ func main() {
 		"#......#",
 		"########",
 	}
-	g, err := game.NewGameFromText(rows)
+
+	cells, head, err := ui.ParseText(rows)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to parse input: %v\n", err)
+	}
+
+	g, err := game.NewGame(cells, head)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create game: %v\n", err)
 		os.Exit(1)

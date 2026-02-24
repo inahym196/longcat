@@ -9,6 +9,57 @@ import (
 	"github.com/inahym196/longcat/pkg/game"
 )
 
+var (
+	TUIParseErr = fmt.Errorf("parse error")
+)
+
+func ParseText(rows []string) ([][]game.Cell, game.Point, error) {
+	if len(rows) == 0 {
+		return nil, game.Point{}, TUIParseErr
+	}
+
+	width := len(rows[0])
+	if width == 0 {
+		return nil, game.Point{}, TUIParseErr
+	}
+
+	cells := make([][]game.Cell, 0, len(rows))
+	head := game.Point{}
+	headFound := false
+
+	for y, row := range rows {
+		if len(row) != width {
+			return nil, game.Point{}, TUIParseErr
+		}
+
+		cellRow := make([]game.Cell, 0, width)
+		for x, ch := range row {
+			switch ch {
+			case '.':
+				cellRow = append(cellRow, game.CellEmpty)
+			case 'o':
+				cellRow = append(cellRow, game.CellFilled)
+			case 'H':
+				if headFound {
+					return nil, game.Point{}, TUIParseErr
+				}
+				cellRow = append(cellRow, game.CellFilled)
+				head = game.Point{X: x, Y: y}
+				headFound = true
+			case '#':
+				cellRow = append(cellRow, game.CellWall)
+			default:
+				return nil, game.Point{}, TUIParseErr
+			}
+		}
+		cells = append(cells, cellRow)
+	}
+	if !headFound {
+		return nil, game.Point{}, TUIParseErr
+	}
+	return cells, head, nil
+}
+
 func Render(g *game.Game) string {
 	var b strings.Builder
 	for y, row := range g.Board().Cells {
