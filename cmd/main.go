@@ -24,7 +24,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to parse input: %v\n", err)
 	}
 
-	g, err := game.NewGame(cells, head)
+	board, err := game.NewBoard(cells)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create board: %v\n", err)
+	}
+	g, err := game.NewGame(board, head)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create game: %v\n", err)
 		os.Exit(1)

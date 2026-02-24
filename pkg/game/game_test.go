@@ -1,7 +1,7 @@
 package game_test
 
 import (
-	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/inahym196/longcat/pkg/game"
@@ -10,77 +10,65 @@ import (
 const (
 	E = game.CellEmpty
 	W = game.CellWall
-	F = game.CellFilled
 )
 
-func mustNewCellsAndHeadFromText(t *testing.T, rows []string) ([][]game.Cell, game.Point) {
-	cells := make([][]game.Cell, 0, len(rows))
-
-	head := game.Point{}
-	for y, row := range rows {
-		cellRow := make([]game.Cell, 0, len(row))
-		for x, ch := range row {
-			switch ch {
-			case '.':
-				cellRow = append(cellRow, game.CellEmpty)
-			case 'o':
-				cellRow = append(cellRow, game.CellFilled)
-			case 'H':
-				cellRow = append(cellRow, game.CellFilled)
-				head = game.Point{x, y}
-			case '#':
-				cellRow = append(cellRow, game.CellWall)
-			default:
-				t.Fatalf("invalid cell: %q", ch)
-			}
-		}
-		cells = append(cells, cellRow)
-	}
-	return cells, head
-}
-
 func mustNewGameFromText(t *testing.T, rows []string) *game.Game {
-	cells, head := mustNewCellsAndHeadFromText(t, rows)
-	g, err := game.NewGame(cells, head)
+	stage := mustNewStageFromText(t, rows)
+	g, err := game.NewGame(stage.Board(), stage.Head())
 	if err != nil {
 		t.Fatal(err)
 	}
 	return g
 }
 
+func mustNewStageFromText(t *testing.T, rows []string) game.Stage {
+	cells := make([][]game.Cell, 0, len(rows))
+	var head game.Point
+	for y, row := range rows {
+		cellRow := make([]game.Cell, 0, len(row))
+		for x, ch := range row {
+			switch ch {
+			case '.':
+				cellRow = append(cellRow, game.CellEmpty)
+			case '#':
+				cellRow = append(cellRow, game.CellWall)
+			case 'H':
+				cellRow = append(cellRow, game.CellEmpty)
+				head = game.Point{x, y}
+			default:
+				t.Fatalf("invalid cell: %q", ch)
+			}
+		}
+		cells = append(cells, cellRow)
+	}
+	stage, err := game.NewStage(cells, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return stage
+}
+
 func TestGame_Move_Right_MovesUntilWall(t *testing.T) {
 	g := mustNewGameFromText(t, []string{"#####", "#H..#", "#####"})
-	want := mustNewGameFromText(t, []string{"#####", "#ooH#", "#####"})
+	wantBody := []game.Point{{1, 1}, {2, 1}}
+	wantHead := game.Point{3, 1}
 
 	moved := g.Move(game.DirectionRight)
 	if !moved {
 		t.Fatal("expected move")
 	}
+	got := g.Cat()
 
-	if got := g.Board(); !reflect.DeepEqual(got.Snapshot(), want.Board().Snapshot()) {
-		t.Errorf("want %v, got %v", want.Board().Snapshot(), got.Snapshot())
+	if got.Head() != wantHead {
+		t.Errorf("want %v, got %v", wantHead, got.Head())
 	}
-	if got := g.Head(); got != want.Head() {
-		t.Errorf("want %v, got %v", want.Head(), got)
+	if !slices.Equal(got.Body(), wantBody) {
+		t.Errorf("want %v, got %v", wantBody, got.Body())
 	}
 }
 
 func TestGame_Move_Right_BlockedByWall(t *testing.T) {
 	g := mustNewGameFromText(t, []string{"###", "#H#", "###"})
-
-	moved := g.Move(game.DirectionRight)
-
-	if moved {
-		t.Errorf("expected no move")
-	}
-}
-
-func TestGame_Move_Right_BlockedByFilled(t *testing.T) {
-	g := mustNewGameFromText(t, []string{
-		"####",
-		"#Ho#",
-		"####",
-	})
 
 	moved := g.Move(game.DirectionRight)
 
@@ -105,7 +93,7 @@ func TestGame_Move_Directions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.g.Move(tt.dir)
-			got := tt.g.Head()
+			got := tt.g.Cat().Head()
 
 			if got != tt.want {
 				t.Errorf("want %v, got %v", tt.want, got)

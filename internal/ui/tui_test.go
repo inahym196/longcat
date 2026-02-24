@@ -10,18 +10,17 @@ import (
 const (
 	E = game.CellEmpty
 	W = game.CellWall
-	F = game.CellFilled
 )
 
 func TestParseText(t *testing.T) {
 	rows := []string{
 		"#####",
-		"#.oH#",
+		"#..H#",
 		"#####",
 	}
 	wantCells := [][]game.Cell{
 		{W, W, W, W, W},
-		{W, E, F, F, W},
+		{W, E, E, E, W},
 		{W, W, W, W, W},
 	}
 	wantHead := game.Point{X: 3, Y: 1}
@@ -41,38 +40,24 @@ func TestParseText(t *testing.T) {
 }
 
 func TestRender(t *testing.T) {
-	g, _ := game.NewGame(
-		[][]game.Cell{
-			{W, W, W, W, W},
-			{W, F, E, F, W},
-			{W, W, W, W, W},
-		},
-		game.Point{X: 3, Y: 1},
-	)
-	want := "# # # # #\n# o . H #\n# # # # #"
+	cells := [][]game.Cell{
+		{W, W, W, W, W},
+		{W, E, E, E, W},
+		{W, W, W, W, W},
+	}
+	b, err := game.NewBoard(cells)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := game.NewGame(b, game.Point{X: 3, Y: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# # # # #\n# . . H #\n# # # # #"
 
 	got := Render(g)
 
 	if got != want {
 		t.Fatalf("want %q, got %q", want, got)
 	}
-}
-
-func TestRender_HeadMustBeFilled(t *testing.T) {
-	g, _ := game.NewGame(
-		[][]game.Cell{
-			{W, W, W},
-			{W, E, W},
-			{W, W, W},
-		},
-		game.Point{X: 1, Y: 1},
-	)
-
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-
-	Render(g)
 }

@@ -19,33 +19,20 @@ func ParseText(rows []string) ([][]game.Cell, game.Point, error) {
 	}
 
 	width := len(rows[0])
-	if width == 0 {
-		return nil, game.Point{}, TUIParseErr
-	}
 
 	cells := make([][]game.Cell, 0, len(rows))
 	head := game.Point{}
-	headFound := false
 
 	for y, row := range rows {
-		if len(row) != width {
-			return nil, game.Point{}, TUIParseErr
-		}
 
 		cellRow := make([]game.Cell, 0, width)
 		for x, ch := range row {
 			switch ch {
 			case '.':
 				cellRow = append(cellRow, game.CellEmpty)
-			case 'o':
-				cellRow = append(cellRow, game.CellFilled)
 			case 'H':
-				if headFound {
-					return nil, game.Point{}, TUIParseErr
-				}
-				cellRow = append(cellRow, game.CellFilled)
+				cellRow = append(cellRow, game.CellEmpty)
 				head = game.Point{X: x, Y: y}
-				headFound = true
 			case '#':
 				cellRow = append(cellRow, game.CellWall)
 			default:
@@ -54,15 +41,12 @@ func ParseText(rows []string) ([][]game.Cell, game.Point, error) {
 		}
 		cells = append(cells, cellRow)
 	}
-	if !headFound {
-		return nil, game.Point{}, TUIParseErr
-	}
 	return cells, head, nil
 }
 
 func Render(g *game.Game) string {
 	var b strings.Builder
-	for y, row := range g.Board().Cells {
+	for y, row := range g.Cells() {
 		if y > 0 {
 			b.WriteByte('\n')
 		}
@@ -71,18 +55,17 @@ func Render(g *game.Game) string {
 				b.WriteByte(' ')
 			}
 			p := game.Point{X: x, Y: y}
-			if g.Head() == p {
-				if cell != game.CellFilled {
-					panic(fmt.Sprintf("invalid head cell at (%d,%d)", x, y))
-				}
-				b.WriteString("H")
-				continue
-			}
 			switch cell {
 			case game.CellEmpty:
+				if g.Cat().Head() == p {
+					b.WriteString("H")
+					continue
+				}
+				if g.Cat().IsBody(p) {
+					b.WriteString("o")
+					continue
+				}
 				b.WriteString(".")
-			case game.CellFilled:
-				b.WriteString("o")
 			case game.CellWall:
 				b.WriteString("#")
 			default:

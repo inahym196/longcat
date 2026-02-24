@@ -1,78 +1,42 @@
 package game
 
-import "fmt"
-
-type Game struct {
-	board      *Board
-	head       Point
-	emptyCount int
+type Stage struct {
+	board Board
+	head  Point
 }
 
-var (
-	GameHeadErr = fmt.Errorf("invalid head")
-)
-
-func NewGame(cells [][]Cell, head Point) (*Game, error) {
-
+func NewStage(cells [][]Cell, head Point) (Stage, error) {
 	b, err := NewBoard(cells)
 	if err != nil {
-		return nil, err
+		return Stage{}, err
 	}
+	return Stage{b, head}, nil
+}
 
-	headCell, err := b.Cell(head)
+func (s Stage) Head() Point  { return s.head }
+func (s Stage) Board() Board { return s.board }
+
+type Game struct {
+	board       Board
+	initialHead Point
+	cat         *LongCat
+}
+
+func NewGame(board Board, head Point) (*Game, error) {
+	cat, err := NewLongCat(head, board)
 	if err != nil {
 		return nil, err
 	}
-
-	if headCell != CellFilled {
-		return nil, GameHeadErr
-	}
-
-	return &Game{b, head, b.EmptyCount()}, nil
-}
-
-func (g *Game) Head() Point { return g.head }
-
-func (g *Game) Board() *Board {
-	cells := make([][]Cell, len(g.board.Cells))
-	for y, row := range g.board.Cells {
-		cells[y] = append([]Cell(nil), row...)
-	}
-	return &Board{
-		Width:  g.board.Width,
-		Height: g.board.Height,
-		Cells:  cells,
-	}
-}
-
-func (g *Game) Move(d Direction) bool {
-
-	current := g.head
-	moved := false
-
-	for {
-		next := current.Move(d)
-		nextCell, err := g.board.Cell(next)
-		if err != nil {
-			panic(err)
-		}
-		if nextCell != CellEmpty {
-			break
-		}
-		g.board.Fill(next)
-		current = next
-		moved = true
-	}
-
-	if moved {
-		g.head = current
-		g.emptyCount = g.board.EmptyCount()
-	}
-	return moved
+	return &Game{board, head, cat}, nil
 }
 
 func (g *Game) IsCleared() bool {
-	return g.emptyCount == 0
+	return g.cat.Len() == g.board.EmptyCount()
 }
 
-// TODO: Game.EmptyCountは必要になったら公開する
+func (g *Game) Move(d Direction) bool {
+	return g.cat.Stretch(d, g.board)
+}
+
+func (g *Game) Cells() [][]Cell  { return g.board.Cells() }
+func (g *Game) Cat() LongCatView { return g.cat }
